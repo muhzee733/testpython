@@ -112,8 +112,7 @@ USE_I18N = True
 USE_TZ = True
 
 CORS_ALLOWED_ORIGINS = [
-    "promedicine.frazmedicall.com.au",
-    "promedicine.geeklies.xyz"
+    "https://promedicine.geeklies.xyz"
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
