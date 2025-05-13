@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 
 class LoginView(APIView):
     class LoginSerializer(serializers.Serializer):
-        email = serializers.CharField(max_length=100)
+        email = serializers.EmailField()
         password = serializers.CharField(write_only=True)
 
     def post(self, request):
@@ -21,23 +21,17 @@ class LoginView(APIView):
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
 
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
+            user = authenticate(email=email, password=password)
+
+            if user is None:
                 return Response({
                     "success": False,
-                    "message": "User with this email does not exist"
-                }, status=status.HTTP_200_OK)
-
-            user = authenticate(email=user.email, password=password)
-
-            if not user:
-                return Response({
-                    "message": "Incorrect password"
+                    "message": "Invalid email or password"
                 }, status=status.HTTP_200_OK)
 
             if not user.is_active:
                 return Response({
+                    "success": False,
                     "message": "Your account is inactive"
                 }, status=status.HTTP_200_OK)
 
