@@ -13,6 +13,7 @@ from chat.models import ChatRoom
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import os
+from appointment.models import AppointmentAvailability
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 endpoint_secret = 'whsec_RYQRvalTOecFccc9gtYSmV3GUntjYAQY'
@@ -32,12 +33,12 @@ def stripe_webhook(request):
         return JsonResponse({'status': 'Invalid payload'}, status=400)
     except stripe.error.SignatureVerificationError:
         return JsonResponse({'status': 'Invalid signature'}, status=400)
-    print("Webhook received", event)
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         order_id = session['metadata'].get('order_id')
         payment_intent = session.get('payment_intent')
+        appointment_id = session['metadata'].get('appointment_id')
 
         try:
             order = Order.objects.get(id=order_id)
@@ -45,7 +46,14 @@ def stripe_webhook(request):
             order.payment_intent = payment_intent
             order.save()
         except Order.DoesNotExist:
-            pass  # Optionally log this
+            pass
+
+        try:
+            appointment = AppointmentAvailability.objects.get(id=appointment_id)
+            appointment.is_booked = True
+            appointment.save()
+        except AppointmentAvailability.DoesNotExist:
+            pass
 
     return JsonResponse({'status': 'success'}, status=200)
 
@@ -133,7 +141,8 @@ class CreateStripeCheckoutSession(APIView):
                 
                 cancel_url='http://localhost:3000/cancel',  # Apne frontend ka cancel page
                 metadata={
-                    'order_id': str(order.id)
+                    'order_id': str(order.id),
+                    'appointment_id': str(order.appointment.id),
                 }
             )
             order.stripe_session_id = session.id
