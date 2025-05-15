@@ -46,7 +46,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             room = ChatRoom.objects.get(id=room_id)
             sender = User.objects.get(id=sender_id)
             msg = Message.objects.create(room=room, sender=sender, message=message)
-            print("Message saved:", msg.id)
             return msg 
         except Exception as e:
             print("[Error Saving]", str(e))

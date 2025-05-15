@@ -112,6 +112,12 @@ USE_I18N = True
 
 USE_TZ = True
 
+CHANNEL_LAYERS = {
+        'default': {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }
+
 CORS_ALLOWED_ORIGINS = [
     "https://promedicine.geeklies.xyz"
 ]
